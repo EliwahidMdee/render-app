@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'dart:async';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../sessions/data/models/session_model.dart';
 import '../../../sessions/presentation/providers/sessions_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -24,11 +25,13 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _assignSessionIfNeeded();
+    _startAutoRefresh();
   }
 
   Future<void> _assignSessionIfNeeded() async {
@@ -52,7 +55,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    // Auto-refresh messages every 800ms (under 1 second)
+    _refreshTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
+      if (mounted) {
+        ref
+            .read(chatProvider(widget.session.sessionId).notifier)
+            .refreshMessages();
+      }
+    });
   }
 
   Future<void> _sendMessage() async {
@@ -207,7 +222,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Created ${timeago.format(widget.session.createdAt)}',
+                    'Created ${DateFormatter.formatRelative(widget.session.createdAt)}',
                     style: GoogleFonts.roboto(
                       fontSize: 12,
                       color: AppColors.textSecondary,

@@ -17,12 +17,11 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAgent = message.isFromAgent;
-    final alignment = isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
-    final bubbleColor = isCurrentUser
+    // WhatsApp style: agent messages on left, user messages on right
+    final alignment = isAgent ? Alignment.centerLeft : Alignment.centerRight;
+    final bubbleColor = isAgent
         ? AppColors.agentMessageBubble
-        : isAgent
-            ? AppColors.userMessageBubble.withOpacity(0.5)
-            : AppColors.userMessageBubble;
+        : AppColors.userMessageBubble;
 
     return Align(
       alignment: alignment,
@@ -33,10 +32,10 @@ class MessageBubble extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment:
-              isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              isAgent ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            // Sender Name (only if not current user)
-            if (!isCurrentUser)
+            // Sender Name (for agent messages only)
+            if (isAgent)
               Padding(
                 padding: const EdgeInsets.only(left: 12, bottom: 4),
                 child: Row(
@@ -71,8 +70,8 @@ class MessageBubble extends StatelessWidget {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isCurrentUser ? 16 : 4),
-                  bottomRight: Radius.circular(isCurrentUser ? 4 : 16),
+                  bottomLeft: Radius.circular(isAgent ? 4 : 16),
+                  bottomRight: Radius.circular(isAgent ? 16 : 4),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -107,16 +106,17 @@ class MessageBubble extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      if (isCurrentUser) ...[
+                      // Show ticks for user messages (from user's perspective - when they send)
+                      if (!isAgent) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          message.readByUser
-                              ? Icons.done_all
-                              : Icons.done,
+                          message.readByAgent
+                              ? Icons.done_all  // Double tick (read)
+                              : Icons.done_all,  // Double tick (delivered)
                           size: 14,
-                          color: message.readByUser
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
+                          color: message.readByAgent
+                              ? Colors.blue  // Blue for read
+                              : Colors.grey,  // Grey for delivered
                         ),
                       ],
                     ],

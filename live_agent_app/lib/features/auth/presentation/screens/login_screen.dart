@@ -88,10 +88,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Logo and Title
-                        Icon(
-                          Icons.support_agent,
-                          size: 80,
-                          color: AppColors.primary,
+                        // Try to load logo from assets, fallback to icon
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 80,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.support_agent,
+                              size: 80,
+                              color: AppColors.primary,
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         Text(

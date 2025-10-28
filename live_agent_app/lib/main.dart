@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_constants.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/sessions/presentation/screens/sessions_list_screen.dart';
+import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/notifications/services/fcm_service.dart';
 
 void main() async {
@@ -130,7 +130,7 @@ class _LiveAgentAppState extends ConsumerState<LiveAgentApp> {
               ),
             )
           : authState.isLoggedIn
-              ? const SessionsListScreen()
+              ? const DashboardScreen()
               : const LoginScreen(),
     );
   }

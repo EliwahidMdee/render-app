@@ -4,13 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/widgets/user_profile_header.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 import '../providers/sessions_provider.dart';
 import '../widgets/session_card.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 
 class SessionsListScreen extends ConsumerStatefulWidget {
-  const SessionsListScreen({super.key});
+  final String? initialFilter;
+  
+  const SessionsListScreen({
+    super.key,
+    this.initialFilter,
+  });
 
   @override
   ConsumerState<SessionsListScreen> createState() => _SessionsListScreenState();
@@ -20,32 +26,35 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
   String? _selectedStatus;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedStatus = widget.initialFilter;
+    if (_selectedStatus != null) {
+      // Apply filter after build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(sessionsProvider.notifier).filterByStatus(_selectedStatus);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final sessionsState = ref.watch(sessionsProvider);
     final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Live Agent',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            if (authState.agent != null)
-              Text(
-                authState.agent!.name,
-                style: GoogleFonts.roboto(
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-          ],
+        title: UserProfileHeader(
+          agent: authState.agent,
+          onSettingsTap: () {
+            // TODO: Navigate to settings screen
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Settings screen - Coming soon')),
+            );
+          },
         ),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 80,
         actions: [
           // Filter Menu
           PopupMenuButton<String>(
