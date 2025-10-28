@@ -24,7 +24,7 @@ class LiveAgentSession(Base):
     last_message_at = Column(DateTime)
     unread_count_user = Column(Integer, default=0)
     unread_count_agent = Column(Integer, default=0)
-    metadata = Column(JSON)
+    session_metadata = Column('metadata', JSON)  # Renamed to avoid SQLAlchemy reserved word
     
     __table_args__ = (
         Index('idx_tenant_domain', 'tenant_domain'),
