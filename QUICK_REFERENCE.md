@@ -42,6 +42,8 @@ Edit `alembic.ini` and set your database URL:
 sqlalchemy.url = mysql+pymysql://username:password@host:port/database_name
 ```
 
+**⚠️ Security:** Use environment variables for production. Never commit credentials to git.
+
 ### Step 3: Run Migrations
 ```bash
 # Apply all migrations

@@ -67,6 +67,11 @@ sqlalchemy.url = driver://user:pass@localhost/dbname
 sqlalchemy.url = mysql+pymysql://your_user:your_password@your_host:3306/your_database
 ```
 
+**⚠️ Security Warning:** 
+- Never commit actual database credentials to version control
+- Use environment variables for sensitive configuration
+- Consider using a `.env` file (excluded in .gitignore) for local development
+
 ### Step 3: Run Migrations
 ```bash
 # This will create both tables with all required columns
@@ -157,7 +162,12 @@ After applying these migrations:
 4. **Production**: For production deployment:
    - Test migrations on a staging database first
    - Review the SQL in MIGRATION_SQL.md
-   - Plan for downtime if needed (though these are CREATE TABLE statements)
+   - Consider performance impacts:
+     - Foreign key creation may briefly lock related tables
+     - Index creation can take time on large tables
+     - Test under production-like load before deploying
+   - Plan maintenance window during low-traffic periods
+   - Have rollback plan ready
 
 ---
 
