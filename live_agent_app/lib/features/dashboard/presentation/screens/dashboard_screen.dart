@@ -20,6 +20,15 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateFilter _selectedFilter = DateFilter.all;
 
+  void _navigateToSessions() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SessionsListScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final sessionsState = ref.watch(sessionsProvider);
@@ -181,14 +190,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SessionsListScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: _navigateToSessions,
                         icon: const Icon(Icons.list),
                         label: const Text('All Sessions'),
                         style: ElevatedButton.styleFrom(

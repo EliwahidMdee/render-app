@@ -53,9 +53,24 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
             );
           },
         ),
-        automaticallyImplyLeading: false,
+        leading: widget.initialFilter != null 
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        automaticallyImplyLeading: widget.initialFilter != null,
         toolbarHeight: 80,
         actions: [
+          // Dashboard button (only if not from dashboard filter)
+          if (widget.initialFilter == null)
+            IconButton(
+              icon: const Icon(Icons.dashboard),
+              tooltip: 'Dashboard',
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
           // Filter Menu
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
