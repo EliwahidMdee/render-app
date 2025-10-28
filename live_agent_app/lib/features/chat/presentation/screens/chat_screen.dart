@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../data/models/message_model.dart';
 import '../../../sessions/data/models/session_model.dart';
 import '../../../sessions/presentation/providers/sessions_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -74,21 +75,42 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    final authState = ref.read(authProvider);
+    
+    // Create a temporary pending message (WhatsApp style)
+    final tempMessage = MessageModel(
+      messageId: -DateTime.now().millisecondsSinceEpoch, // Negative ID for temp message
+      sessionId: widget.session.sessionId,
+      senderType: 'agent',
+      senderId: authState.agent?.email,
+      senderName: authState.agent?.name ?? 'Agent',
+      messageText: text,
+      createdAt: DateTime.now(),
+      readByUser: false,
+      readByAgent: true,
+      metadata: {'isPending': true}, // Mark as pending
+    );
+    
+    // Clear input immediately
     _messageController.clear();
     
+    // Add temp message to UI
+    ref.read(chatProvider(widget.session.sessionId).notifier).addMessage(tempMessage);
+    
+    // Scroll to bottom
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+    
     try {
+      // Send the actual message
       await ref
           .read(chatProvider(widget.session.sessionId).notifier)
           .sendMessage(text);
-      
-      // Scroll to bottom
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -387,19 +409,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: chatState.isSending
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Icon(Icons.send, color: Colors.white),
-                        onPressed: chatState.isSending ? null : _sendMessage,
+                        icon: const Icon(Icons.send, color: Colors.white),
+                        onPressed: _sendMessage,
                       ),
                     ),
                   ],

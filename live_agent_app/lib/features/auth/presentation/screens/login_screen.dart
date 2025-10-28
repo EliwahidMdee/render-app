@@ -100,22 +100,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppConstants.appName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 24),
                         Text(
                           'Agent Portal',
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            color: AppColors.textSecondary,
+                          style: GoogleFonts.poppins(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
                           ),
                           textAlign: TextAlign.center,
                         ),
