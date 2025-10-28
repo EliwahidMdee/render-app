@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'dart:async';
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/widgets/user_profile_header.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 import '../providers/sessions_provider.dart';
 import '../widgets/session_card.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
@@ -24,6 +26,7 @@ class SessionsListScreen extends ConsumerStatefulWidget {
 
 class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
   String? _selectedStatus;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -35,6 +38,22 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
         ref.read(sessionsProvider.notifier).filterByStatus(_selectedStatus);
       });
     }
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    // Auto-refresh sessions every 800ms (under 1 second)
+    _refreshTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
+      if (mounted) {
+        ref.read(sessionsProvider.notifier).refreshSessions();
+      }
+    });
   }
 
   @override
@@ -47,9 +66,11 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
         title: UserProfileHeader(
           agent: authState.agent,
           onSettingsTap: () {
-            // TODO: Navigate to settings screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Settings screen - Coming soon')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
             );
           },
         ),

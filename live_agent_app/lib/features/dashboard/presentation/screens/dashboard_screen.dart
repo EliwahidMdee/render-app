@@ -6,6 +6,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/widgets/user_profile_header.dart';
 import '../../../sessions/presentation/providers/sessions_provider.dart';
 import '../../../sessions/presentation/screens/sessions_list_screen.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 import '../widgets/dashboard_stat_card.dart';
 
 enum DateFilter { today, lastWeek, thisMonth, thisYear, all }
@@ -56,9 +57,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: UserProfileHeader(
           agent: authState.agent,
           onSettingsTap: () {
-            // TODO: Navigate to settings screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Settings screen - Coming soon')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
             );
           },
         ),

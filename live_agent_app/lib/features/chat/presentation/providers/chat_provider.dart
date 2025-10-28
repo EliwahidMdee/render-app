@@ -69,10 +69,13 @@ class ChatNotifier extends StateNotifier<ChatState> {
     try {
       final message = await _chatRepository.sendMessage(sessionId, messageText);
       
-      // Add new message to the list
-      final updatedMessages = [message, ...state.messages];
+      // Remove any pending messages with the same text and add the real message
+      final updatedMessages = state.messages
+          .where((m) => !(m.metadata?['isPending'] == true && m.messageText == messageText))
+          .toList();
+      
       state = state.copyWith(
-        messages: updatedMessages,
+        messages: [message, ...updatedMessages],
         isSending: false,
       );
     } catch (e) {

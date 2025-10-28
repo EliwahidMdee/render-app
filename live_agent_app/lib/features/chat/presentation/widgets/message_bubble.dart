@@ -22,6 +22,9 @@ class MessageBubble extends StatelessWidget {
     final bubbleColor = isAgent
         ? AppColors.agentMessageBubble
         : AppColors.userMessageBubble;
+    
+    // Check if message is pending
+    final isPending = message.metadata?['isPending'] == true;
 
     return Align(
       alignment: alignment,
@@ -67,6 +70,9 @@ class MessageBubble extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: bubbleColor,
+                border: isAgent 
+                    ? Border.all(color: Colors.grey.shade300, width: 1)
+                    : null,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -75,8 +81,8 @@ class MessageBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -100,14 +106,27 @@ class MessageBubble extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        DateFormat('h:mm a').format(message.createdAt),
+                        DateFormat('h:mm a').format(
+                          message.createdAt.isUtc 
+                            ? message.createdAt.toLocal() 
+                            : message.createdAt
+                        ),
                         style: GoogleFonts.roboto(
                           fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
                       ),
+                      // Show clock icon for pending agent messages
+                      if (isAgent && isPending) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
                       // Show ticks for user messages (from user's perspective - when they send)
-                      if (!isAgent) ...[
+                      if (!isAgent && !isPending) ...[
                         const SizedBox(width: 4),
                         Icon(
                           message.readByAgent
