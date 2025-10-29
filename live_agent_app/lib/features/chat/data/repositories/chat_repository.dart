@@ -103,14 +103,15 @@ class ChatRepository {
   }
 
   Future<void> markMessagesAsRead(String sessionId) async {
-    try {
-      await _dioClient.dio.get(
-        '/api/v1/live-agent/messages/$sessionId',
-        queryParameters: {'mark_as_read': true},
-      );
-      AppLogger.info('Marked messages as read for session $sessionId');
-    } catch (e) {
-      AppLogger.warning('Failed to mark messages as read: $e');
-    }
+    return _executeWithRetry(
+      operationName: 'mark messages as read',
+      request: () async {
+        await _dioClient.dio.get(
+          '/api/v1/live-agent/messages/$sessionId',
+          queryParameters: {'mark_as_read': true},
+        );
+        AppLogger.info('Marked messages as read for session $sessionId');
+      },
+    );
   }
 }

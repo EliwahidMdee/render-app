@@ -129,11 +129,11 @@ class MessageBubble extends StatelessWidget {
                       if (isAgent && !isPending) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          message.readByUser
+                          message.readByAgent
                               ? Icons.done_all  // Double tick (read)
                               : Icons.done_all,  // Double tick (delivered)
                           size: 14,
-                          color: message.readByUser
+                          color: message.readByAgent
                               ? Colors.blue  // Blue for read
                               : Colors.grey,  // Grey for delivered
                         ),
