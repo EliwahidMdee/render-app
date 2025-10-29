@@ -8,7 +8,7 @@ class ApiConstants {
   static const String messagesEndpoint = '/api/v1/live-agent/messages';
   static const String agentStatusEndpoint = '/api/v1/live-agent/agent/status';
   
-  // Timeouts
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
+  // Timeouts (60 seconds as per requirements)
+  static const int connectTimeout = 60000;
+  static const int receiveTimeout = 60000;
 }
