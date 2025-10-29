@@ -113,10 +113,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .sendMessage(text);
     } catch (e) {
       if (mounted) {
+        final errorMessage = e.toString();
+        final isTimeout = errorMessage.toLowerCase().contains('timeout') || 
+                          errorMessage.toLowerCase().contains('timed out');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send message: $e'),
+            content: Text(
+              isTimeout 
+                ? 'Connection timed out after retry. Please check your internet and try again.'
+                : 'Failed to send message: $e'
+            ),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
