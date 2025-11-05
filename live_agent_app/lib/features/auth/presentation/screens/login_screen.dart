@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../providers/auth_provider.dart';
-import '../../../sessions/presentation/screens/sessions_list_screen.dart';
+import '../../../dashboard/presentation/screens/dashboard_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -37,7 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const SessionsListScreen(),
+            builder: (context) => const DashboardScreen(),
           ),
         );
       }

@@ -55,6 +55,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
     checkAuthStatus();
   }
 
+  Future<void> updateProfile({String? fullName, String? email, String? password}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final data = <String, dynamic>{};
+      if (fullName != null) data['full_name'] = fullName;
+      if (email != null) data['email'] = email;
+      if (password != null) data['password'] = password;
+
+      final updated = await _authRepository.updateProfile(data);
+      state = state.copyWith(agent: updated, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
   Future<void> checkAuthStatus() async {
     state = state.copyWith(isLoading: true);
     try {

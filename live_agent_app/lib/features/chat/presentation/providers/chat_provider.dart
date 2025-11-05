@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/message_model.dart';
 import '../../data/repositories/chat_repository.dart';
@@ -41,24 +42,63 @@ class ChatState {
 class ChatNotifier extends StateNotifier<ChatState> {
   final ChatRepository _chatRepository;
   final String sessionId;
+  static const String _boxName = 'temp_messages';
 
   ChatNotifier(this._chatRepository, this.sessionId) : super(ChatState()) {
-    loadMessages();
+    _init();
+  }
+
+  Future<void> _init() async {
+    try {
+      await Hive.initFlutter();
+      // store lists of message maps keyed by sessionId
+      await Hive.openBox<List>(_boxName);
+    } catch (_) {}
+
+    final cached = _readMessagesFromBox();
+    if (cached.isNotEmpty) {
+      state = state.copyWith(messages: cached);
+    }
+
+    // Load fresh in background
+    refreshMessages();
+  }
+
+  List<MessageModel> _readMessagesFromBox() {
+    try {
+      final box = Hive.box<List>(_boxName);
+      final raw = box.get(sessionId);
+      if (raw == null) return [];
+      return (raw as List).map((e) => MessageModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _writeMessagesToBox(List<MessageModel> messages) async {
+    try {
+      final box = Hive.box<List>(_boxName);
+      final raw = messages.map((m) => m.toJson()).toList();
+      await box.put(sessionId, raw);
+    } catch (_) {}
   }
 
   Future<void> loadMessages() async {
+    // Read from cache first
+    final cached = _readMessagesFromBox();
+    if (cached.isNotEmpty) {
+      state = state.copyWith(messages: cached, isLoading: false);
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       final messages = await _chatRepository.getMessages(sessionId);
-      state = state.copyWith(
-        messages: messages.reversed.toList(), // Reverse for chat UI
-        isLoading: false,
-      );
+      final reversed = messages.reversed.toList();
+      await _writeMessagesToBox(reversed);
+      state = state.copyWith(messages: reversed, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -68,32 +108,39 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(isSending: true, error: null);
     try {
       final message = await _chatRepository.sendMessage(sessionId, messageText);
-      
-      // Remove any pending messages with the same text and add the real message
-      final updatedMessages = state.messages
-          .where((m) => !(m.metadata?['isPending'] == true && m.messageText == messageText))
-          .toList();
-      
-      state = state.copyWith(
-        messages: [message, ...updatedMessages],
-        isSending: false,
-      );
+
+      // Remove pending duplicates and add real message at top
+      final updatedMessages = state.messages.where((m) => !(m.metadata?['isPending'] == true && m.messageText == messageText)).toList();
+      final newList = [message, ...updatedMessages];
+
+      await _writeMessagesToBox(newList);
+
+      state = state.copyWith(messages: newList, isSending: false);
     } catch (e) {
-      state = state.copyWith(
-        isSending: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isSending: false, error: e.toString());
       rethrow;
     }
   }
 
   Future<void> refreshMessages() async {
-    await loadMessages();
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final messages = await _chatRepository.getMessages(sessionId);
+      final reversed = messages.reversed.toList();
+      await _writeMessagesToBox(reversed);
+      final fromBox = _readMessagesFromBox();
+      state = state.copyWith(messages: fromBox, isLoading: false);
+    } catch (e) {
+      final fromBox = _readMessagesFromBox();
+      state = state.copyWith(messages: fromBox, isLoading: false, error: e.toString());
+    }
   }
 
   void addMessage(MessageModel message) {
     final updatedMessages = [message, ...state.messages];
     state = state.copyWith(messages: updatedMessages);
+    // Update cache so UI persists pending message
+    _writeMessagesToBox(updatedMessages);
   }
 }
 

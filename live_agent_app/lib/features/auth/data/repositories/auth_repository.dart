@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/utils/logger.dart';
 import '../models/agent_model.dart';
 
@@ -73,5 +74,38 @@ class AuthRepository {
       email: email,
       name: name ?? email,
     );
+  }
+
+  /// Update authenticated user's profile. Expects a map with optional keys: full_name, email, password
+  Future<AgentModel> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.put(
+        ApiConstants.profileEndpoint,
+        data: data,
+      );
+
+      final userJson = response.data['user'] ?? response.data['agent'] ?? response.data;
+      final updatedAgent = AgentModel.fromJson(userJson);
+
+      // Persist updated values if present
+      if (updatedAgent.id.isNotEmpty) {
+        await _storage.write(AppConstants.agentIdKey, updatedAgent.id);
+      }
+      if (updatedAgent.email.isNotEmpty) {
+        await _storage.write(AppConstants.agentEmailKey, updatedAgent.email);
+      }
+      if (updatedAgent.name.isNotEmpty) {
+        await _storage.write(AppConstants.agentNameKey, updatedAgent.name);
+      }
+
+      AppLogger.info('Profile updated for agent: ${updatedAgent.email}');
+      return updatedAgent;
+    } on DioException catch (e) {
+      AppLogger.error('Profile update failed', e);
+      throw Exception('Profile update failed: ${e.response?.data?['message'] ?? e.message}');
+    } catch (e) {
+      AppLogger.error('Profile update error', e);
+      throw Exception('Profile update failed: $e');
+    }
   }
 }

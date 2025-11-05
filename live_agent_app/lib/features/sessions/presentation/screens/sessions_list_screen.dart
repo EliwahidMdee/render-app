@@ -48,8 +48,8 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
   }
 
   void _startAutoRefresh() {
-    // Auto-refresh sessions every 800ms (under 1 second)
-    _refreshTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
+    // Auto-refresh sessions every 3 seconds (user requested at least 3s)
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (mounted) {
         ref.read(sessionsProvider.notifier).refreshSessions();
       }
@@ -92,110 +92,24 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
                 Navigator.pop(context);
               },
             ),
-          // Filter Menu
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
-            onSelected: (status) {
-              setState(() {
-                _selectedStatus = status == 'all' ? null : status;
-              });
-              ref.read(sessionsProvider.notifier).filterByStatus(_selectedStatus);
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'all',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.all_inclusive,
-                      color: _selectedStatus == null ? AppColors.primary : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'All',
-                      style: TextStyle(
-                        fontWeight: _selectedStatus == null
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: AppConstants.statusPending,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.pending,
-                      color: _selectedStatus == AppConstants.statusPending
-                          ? AppColors.statusPending
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Pending',
-                      style: TextStyle(
-                        fontWeight: _selectedStatus == AppConstants.statusPending
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: AppConstants.statusActive,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.chat,
-                      color: _selectedStatus == AppConstants.statusActive
-                          ? AppColors.statusActive
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Active',
-                      style: TextStyle(
-                        fontWeight: _selectedStatus == AppConstants.statusActive
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: AppConstants.statusResolved,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: _selectedStatus == AppConstants.statusResolved
-                          ? AppColors.statusResolved
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Resolved',
-                      style: TextStyle(
-                        fontWeight: _selectedStatus == AppConstants.statusResolved
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
           // Refresh
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.read(sessionsProvider.notifier).refreshSessions();
-            },
+            icon: sessionsState.isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.refresh),
+            onPressed: sessionsState.isLoading
+                ? null
+                : () {
+                    ref.read(sessionsProvider.notifier).refreshSessions();
+                  },
+            tooltip: sessionsState.isLoading ? 'Refreshing...' : 'Refresh',
           ),
           // Logout
           IconButton(

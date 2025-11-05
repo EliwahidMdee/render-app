@@ -7,6 +7,7 @@ This document outlines the new and updated API endpoints needed for the enhanced
 2. [Real-time Updates](#real-time-updates)
 3. [Dashboard Statistics](#dashboard-statistics)
 4. [Push Notifications](#push-notifications)
+5. [Settings / Profile](#settings--profile)
 
 ---
 
@@ -28,7 +29,7 @@ This document outlines the new and updated API endpoints needed for the enhanced
 **Request Body:**
 ```json
 {
-  "read_by": "agent"  // or "user"
+  "read_by": "agent"
 }
 ```
 
@@ -68,17 +69,7 @@ This document outlines the new and updated API endpoints needed for the enhanced
 }
 ```
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "All messages marked as read",
-  "data": {
-    "session_id": "session_123",
-    "messages_updated": 15
-  }
-}
-```
+Note: `read_by` can be either `"agent"` or `"user"`.
 
 ---
 
@@ -223,17 +214,11 @@ This document outlines the new and updated API endpoints needed for the enhanced
 ```json
 {
   "fcm_token": "fcm_token_string_here",
-  "device_type": "android"  // or "ios"
+  "device_type": "android"
 }
 ```
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "FCM token registered successfully"
-}
-```
+Note: `device_type` should be either `"android"` or `"ios"`.
 
 ---
 
@@ -290,6 +275,95 @@ This document outlines the new and updated API endpoints needed for the enhanced
   }
 }
 ```
+
+---
+
+## Settings / Profile
+
+Auth: Authorization: Bearer <jwt> (uses get_current_user)
+
+### GET /api/v1/auth/profile
+Purpose: return the authenticated user's account details.
+
+URL: `/api/v1/auth/profile`
+
+Method: `GET`
+
+Headers:
+```json
+{ "Authorization": "Bearer <token>" }
+```
+
+Request body: none
+
+Success (200) response JSON (ProfileOut):
+```json
+{
+  "email": "alice@example.com",
+  "full_name": "Alice Example",
+  "role": "agent",
+  "is_active": true,
+  "created_at": "2024-01-15T09:27:00.000000",
+  "last_login": "2025-11-06T14:00:00.000000"
+}
+```
+
+Errors:
+- `401 Unauthorized` — missing/invalid token
+- `404 Not Found` — token valid but user not found in DB (rare)
+
+---
+
+### PUT /api/v1/auth/profile
+Purpose: update the authenticated user's profile.
+
+URL: `/api/v1/auth/profile`
+
+Method: `PUT`
+
+Headers:
+```json
+{ "Authorization": "Bearer <token>" }
+```
+
+Request body (any fields optional):
+```json
+{
+  "full_name": "Alice L. Example",
+  "email": "alice.new@example.com",
+  "password": "newStrongPassword123"
+}
+```
+
+password min length: 8
+
+Behavior summary:
+- If email changes:
+  - Server checks uniqueness; returns `400 Bad Request` if the new email already exists.
+  - Updates `users.email` and attempts to update any `LiveAgentProfile` where `agent_id == old_email` to the new email.
+  - Note: the client's JWT still contains the old email — the client should re-login to obtain a token with the new email in claims.
+- If `full_name` changes:
+  - Updates `users.full_name` and also `LiveAgentProfile.agent_name` if a profile exists for the user.
+- If `password` provided:
+  - Stores bcrypt-hashed password.
+
+Success (200) response JSON (updated ProfileOut):
+```json
+{
+  "email": "alice.new@example.com",
+  "full_name": "Alice L. Example",
+  "role": "agent",
+  "is_active": true,
+  "created_at": "2024-01-15T09:27:00.000000",
+  "last_login": "2025-11-06T14:00:00.000000"
+}
+```
+
+Errors:
+- `400 Bad Request` — new email already in use
+- `401 Unauthorized` — missing/invalid token
+- `404 Not Found` — user not found
+- `422 Unprocessable Entity` — validation failure (e.g., invalid email, short password)
 
 ---
 

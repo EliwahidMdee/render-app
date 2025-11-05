@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_constants.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/core/presentation/providers/theme_provider.dart';
 import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/notifications/services/fcm_service.dart';
 
@@ -62,10 +63,12 @@ class _LiveAgentAppState extends ConsumerState<LiveAgentApp> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
 
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -87,7 +90,7 @@ class _LiveAgentAppState extends ConsumerState<LiveAgentApp> {
             color: Colors.white,
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

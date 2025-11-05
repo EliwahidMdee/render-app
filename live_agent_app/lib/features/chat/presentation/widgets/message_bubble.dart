@@ -116,8 +116,8 @@ class MessageBubble extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      // REVERSED: Show clock icon for pending user messages
-                      if (!isAgent && isPending) ...[
+                      // Show clock icon for pending agent messages (outgoing)
+                      if (isAgent && isPending) ...[
                         const SizedBox(width: 4),
                         Icon(
                           Icons.access_time,
@@ -125,17 +125,17 @@ class MessageBubble extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ],
-                      // REVERSED: Show ticks for agent messages (they appear as if agent sent them)
+                      // Show ticks for agent messages when not pending
                       if (isAgent && !isPending) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          message.readByAgent
+                          message.readByUser
                               ? Icons.done_all  // Double tick (read)
                               : Icons.done_all,  // Double tick (delivered)
                           size: 14,
-                          color: message.readByAgent
-                              ? Colors.blue  // Blue for read
-                              : Colors.grey,  // Grey for delivered
+                          color: message.readByUser
+                              ? Colors.blue  // Blue for read by user
+                              : Colors.grey,  // Grey for delivered/not read
                         ),
                       ],
                     ],

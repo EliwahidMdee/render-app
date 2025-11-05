@@ -204,11 +204,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          ref.read(sessionsProvider.notifier).refreshSessions();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Refresh'),
+                        onPressed: sessionsState.isLoading
+                            ? null
+                            : () {
+                                ref.read(sessionsProvider.notifier).refreshSessions();
+                              },
+                        icon: sessionsState.isLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.refresh),
+                        label: Text(
+                          sessionsState.isLoading ? 'Refreshing...' : 'Refresh',
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),

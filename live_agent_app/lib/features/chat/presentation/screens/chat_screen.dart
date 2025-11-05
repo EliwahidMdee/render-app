@@ -61,13 +61,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _startAutoRefresh() {
-    // Auto-refresh messages every 800ms (under 1 second)
-    _refreshTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
-      if (mounted) {
-        ref
-            .read(chatProvider(widget.session.sessionId).notifier)
-            .refreshMessages();
+    // Auto-refresh messages every 3 seconds. Skip refresh while sending or when
+    // there are pending (temporary) messages so the user's unsent/pending
+    // message doesn't disappear when the server refreshes.
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!mounted) return;
+
+      final chatState = ref.read(chatProvider(widget.session.sessionId));
+
+      // If a send is in progress or there are pending temporary messages,
+      // skip refreshing this cycle. That keeps the pending UI message visible
+      // until the server confirms it.
+      final hasPending = chatState.messages.any(
+          (m) => m.metadata != null && m.metadata!['isPending'] == true);
+      // Also skip refresh if user is composing a message (so their unsent text doesn't disappear)
+      final isComposing = _messageController.text.trim().isNotEmpty;
+
+      if (chatState.isSending || hasPending || isComposing) {
+        return;
       }
+
+      ref
+          .read(chatProvider(widget.session.sessionId).notifier)
+          .refreshMessages();
     });
   }
 
@@ -219,12 +235,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               onPressed: _closeSession,
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref
-                  .read(chatProvider(widget.session.sessionId).notifier)
-                  .refreshMessages();
-            },
+            icon: chatState.isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.refresh),
+            onPressed: chatState.isLoading
+                ? null
+                : () {
+                    ref
+                        .read(chatProvider(widget.session.sessionId).notifier)
+                        .refreshMessages();
+                  },
+            tooltip: chatState.isLoading ? 'Refreshing...' : 'Refresh',
           ),
         ],
         flexibleSpace: Container(

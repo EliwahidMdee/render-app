@@ -2,7 +2,6 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
-    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -23,18 +22,25 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.liveagent.live_agent_app"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -43,16 +49,34 @@ android {
 
     defaultConfig {
         applicationId "com.liveagent.live_agent_app"
-        minSdkVersion 21
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            // Use release signing if key.properties exists, otherwise fall back to debug
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+
+            // Disable minification temporarily to avoid R8 issues
+            // Re-enable later with proper ProGuard rules if needed
+            minifyEnabled false
+            shrinkResources false
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
@@ -65,4 +89,15 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-analytics'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
+
+// Apply Google Services plugin only if google-services.json exists to prevent build failure
+// Check common locations (app/google-services.json and app/src/debug/google-services.json)
+def googleServicesFile = file("${projectDir}/google-services.json")
+def googleServicesDebugFile = file("${projectDir}/src/debug/google-services.json")
+if (googleServicesFile.exists() || googleServicesDebugFile.exists()) {
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    println "WARNING: google-services.json not found in ${projectDir}. Skipping com.google.gms.google-services plugin."
 }

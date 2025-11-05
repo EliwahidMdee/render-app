@@ -1,9 +1,10 @@
 class ApiConstants {
   // Base URL - Change this to your backend URL
-  static const String baseUrl = 'https://api.example.com';
-  
+   static const String baseUrl = 'https://render-3znh.onrender.com';
+
   // Endpoints
   static const String loginEndpoint = '/api/v1/auth/login';
+  static const String profileEndpoint = '/api/v1/auth/profile';
   static const String sessionsEndpoint = '/api/v1/live-agent/sessions';
   static const String messagesEndpoint = '/api/v1/live-agent/messages';
   static const String agentStatusEndpoint = '/api/v1/live-agent/agent/status';

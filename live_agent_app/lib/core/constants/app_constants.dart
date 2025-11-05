@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // App Info
-  static const String appName = 'Live Agent';
+  static const String appName = 'SmartBiashara- Customer Support';
   static const String appVersion = '1.0.0';
   
   // Storage Keys
@@ -10,6 +10,7 @@ class AppConstants {
   static const String agentIdKey = 'agent_id';
   static const String agentEmailKey = 'agent_email';
   static const String agentNameKey = 'agent_name';
+  static const String darkModeKey = 'dark_mode';
   static const String fcmTokenKey = 'fcm_token';
   
   // Session Status
