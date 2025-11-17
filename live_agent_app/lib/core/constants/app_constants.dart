@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppConstants {
   // App Info
   static const String appName = 'SmartBiashara- Customer Support';
-  static const String appVersion = '1.0.0';
-  
+  static const String appVersion = '1.2.2';
+
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
   static const String agentIdKey = 'agent_id';

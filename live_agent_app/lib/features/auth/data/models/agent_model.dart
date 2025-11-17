@@ -17,7 +17,7 @@ class AgentModel {
     return AgentModel(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? json['agent_email'] ?? '',
-      name: json['name'] ?? json['agent_name'] ?? '',
+      name: (json['name'] ?? json['full_name'] ?? json['agent_name'] ?? '').toString().trim(),
       isOnline: json['is_online'] ?? false,
       fcmToken: json['fcm_token'],
     );

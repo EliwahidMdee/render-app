@@ -1,7 +1,7 @@
 name: live_agent_app
 description: A modern, attractive Live Agent Flutter application for multi-tenant real-time customer support
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.2.2+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

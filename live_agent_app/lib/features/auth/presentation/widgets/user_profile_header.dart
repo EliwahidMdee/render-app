@@ -15,9 +15,9 @@ class UserProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (agent == null) {
-      return const SizedBox.shrink();
-    }
+    // Show a placeholder when agent is null so the AppBar always has a visible title area.
+    final displayName = (agent?.name ?? 'Agent').toString();
+    final displayEmail = (agent?.email ?? '').toString();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -28,7 +28,11 @@ class UserProfileHeader extends StatelessWidget {
             radius: 20,
             backgroundColor: AppColors.primary,
             child: Text(
-              agent!.name.isNotEmpty ? agent!.name[0].toUpperCase() : 'A',
+              (() {
+                final n = displayName.trim();
+                if (n.isEmpty) return 'A';
+                return n[0].toUpperCase();
+              })(),
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -44,7 +48,7 @@ class UserProfileHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  agent!.name,
+                  displayName,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -53,10 +57,10 @@ class UserProfileHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  agent!.email,
+                  displayEmail,
                   style: GoogleFonts.roboto(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -66,8 +70,8 @@ class UserProfileHeader extends StatelessWidget {
           // Settings Button
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: onSettingsTap,
-            tooltip: 'Settings',
+            onPressed: (agent != null && onSettingsTap != null) ? onSettingsTap : null,
+            tooltip: agent != null ? 'Settings' : 'No settings',
           ),
         ],
       ),

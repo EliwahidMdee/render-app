@@ -1,0 +1,5 @@
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=live-agent-app
+storeFile=../upload-keystore.jks
+
